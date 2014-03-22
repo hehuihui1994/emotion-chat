@@ -13,6 +13,11 @@
 .lh{
   line-height: 0.8;
 }
+#bubbles {
+  z-index: 1;
+  position: absolute;
+  height: 500px;
+}
 
 #chat-text {
   overflow: auto;
@@ -32,6 +37,8 @@
   background-image: -webkit-linear-gradient(bottom, #282829 22%, #282829 22%, #616163 61%, #8A8C8F 100%);
   background-image: -ms-linear-gradient(bottom, #282829 22%, #282829 22%, #616163 61%, #8A8C8F 100%);
   background-image: linear-gradient(to bottom, #282829 22%, #282829 22%, #616163 61%, #8A8C8F 100%);
+  z-index: 0;
+
 }
 
 #input-name-form{

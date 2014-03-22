@@ -2,6 +2,118 @@
 var inbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
 var outbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
 
+var margin = {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0
+},
+width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+
+var n = 6,
+    m = 1,
+    padding = 6,
+    radius = d3.scale.sqrt().range([0, 4]),
+    color = d3.scale.ordinal().domain(['rg-1','rg-2','rg-3','rg-4','rg-5','rg-6','rg-7','rg-8','rg-9','rg-10','rg-11']).range(['black','red','#919191','#660000','#f8651d','#6240a1','#f9659b','#fbfe32','#3302fb','#30cf31','white']),
+    x = d3.scale.ordinal().domain(d3.range(m)).rangePoints([0, width], 1);
+
+var nodes = [];
+/*
+var nodes = d3.range(n).map(function () {
+    var i = Math.floor(Math.random() * m), //color
+        v = (i + 1) / m * -Math.log(Math.random()); //value
+    var n = {
+	id : Math.floor(Math.random()*1000000000),
+        radius: radius(v),
+        color: color(i),
+        cx: x(i),
+        cy: height / 2,
+    };
+return n;
+
+});
+*/
+var force = d3.layout.force()
+    .nodes(nodes)
+    .size([width, height])
+    .gravity(0)
+    .charge(0)
+    .on("tick", tick);
+//force.start();
+
+var svg = d3.select("#bubbles").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+start();
+function tick(e) {
+    svg.selectAll("circle").each(gravity(.2 * e.alpha))
+        .each(collide(.5))
+        .attr("cx", function (d) {
+        return d.x;
+    })
+        .attr("cy", function (d) {
+        return d.y;
+    });
+}
+
+// Move nodes toward cluster focus.
+function gravity(alpha) {
+    return function (d) {
+        d.y += (d.cy - d.y) * alpha;
+        d.x += (d.cx - d.x) * alpha;
+    };
+}
+
+// Resolve collisions between nodes.
+function collide(alpha) {
+    var quadtree = d3.geom.quadtree(nodes);
+    return function (d) {
+        var r = d.radius + radius.domain()[1] + padding,
+            nx1 = d.x - r,
+            nx2 = d.x + r,
+            ny1 = d.y - r,
+            ny2 = d.y + r;
+        quadtree.visit(function (quad, x1, y1, x2, y2) {
+            if (quad.point && (quad.point !== d)) {
+                var x = d.x - quad.point.x,
+                    y = d.y - quad.point.y,
+                    l = Math.sqrt(x * x + y * y),
+                    r = d.radius + quad.point.radius + (d.color !== quad.point.color) * padding;
+                if (l < r) {
+                    l = (l - r) / l * alpha;
+                    d.x -= x *= l;
+                    d.y -= y *= l;
+                    quad.point.x += x;
+                    quad.point.y += y;
+                }
+            }
+            return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+        });
+    };
+}
+function start() {
+
+ var circleNode = svg.selectAll("circle")
+    .data(force.nodes());
+
+circleNode
+    .enter().append("circle")
+    .attr("r", function (d) { return d.radius;})
+    .attr("cx", function (d) { return d.cx;})
+    .attr("cy", function (d) { return d.cy;})
+    .style("fill", function (d) { return d.color; })
+    .call(force.drag);
+
+circleNode.exit().remove();
+
+  force.start();
+}
+
 //receiving a message
 //get data and show in chat box
 inbox.onmessage = function(message) {
@@ -16,31 +128,7 @@ inbox.onmessage = function(message) {
   console.log(data.neg);
   var posP = parseFloat(data.pos);
   console.log(posP);
-  /*
-  var emotionRangeClassString = ""
-    if (     negP > 0     && negP < 1/11 )  
-      emotionRangeClassString = "rg-11";
-    else if (negP >= 1/11 && negP < 2/11)
-      emotionRangeClassString = "rg-10";
-    else if (negP >= 2/11 && negP < 3/11)
-      emotionRangeClassString = "rg-9";
-    else if (negP >= 3/11 && negP < 4/11)
-      emotionRangeClassString = "rg-8";
-    else if (negP >= 4/11 && negP < 5/11)
-      emotionRangeClassString = "rg-7";
-    else if (negP >= 5/11 && negP < 6/11)
-      emotionRangeClassString = "rg-6";
-    else if (negP >= 6/11 && negP < 7/11)
-      emotionRangeClassString = "rg-5";
-    else if (negP >= 7/11 && negP < 8/11)
-      emotionRangeClassString = "rg-4";
-    else if (negP >= 8/11 && negP < 9/11)
-      emotionRangeClassString = "rg-3";
-    else if (negP >= 9/11 && negP < 10/11)
-      emotionRangeClassString = "rg-2";
-    else if (negP >= 10/11 && negP <= 1)
-      emotionRangeClassString = "rg-1";
-  */
+
   var emotionRangeClassString = ""
     if ( negP > posP){
 
@@ -64,8 +152,7 @@ inbox.onmessage = function(message) {
     }
     else if(posP > negP){
       var index = posP + 6;
-      emotionRangeClassString = "rg-".concat( index.toString() );
-      
+      emotionRangeClassString = "rg-".concat( index.toString() ); 
     }
     else{ 
       emotionRangeClassString = "rg-6";
@@ -73,24 +160,39 @@ inbox.onmessage = function(message) {
 
   console.log(emotionRangeClassString);
 
+  var bubblesNb = data.length;
   //if it's the content we entered
   if ( $("#input-name")[0].value == name ) {
     
-    $("#chat-text").append("<div class='bubble-span-panel'><div class='words my-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + data.length + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>");   
-    
+    $("#chat-text").append("<div class='bubble-span-panel'><div class='words my-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>"); 
+
+addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
+	start();
   }
   //if it's the content other people entered
   else{
 
-     $("#chat-text").append("<div class='bubble-span-panel'><div class='words his-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + data.length + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>");
+     $("#chat-text").append("<div class='bubble-span-panel'><div class='words his-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>");
 
   }
 
-  
   $("#chat-text").stop().animate({
     scrollTop: $('#chat-text')[0].scrollHeight
   }, 800);
+
 };
+
+function addNodes(msg, bubblesNb, pos, neg,emotionRangeClassString){
+	for (var i = 0 ;i<bubblesNb;i++){
+		nodes.push({
+		id : Math.floor(Math.random()*1000000000),
+		radius: radius(3),
+		color: color(emotionRangeClassString),
+		cx: x(4),
+		cy: height / 2,
+	    });
+	}
+}
 
 inbox.onclose = function(){
     console.log('inbox closed');
