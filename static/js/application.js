@@ -166,8 +166,7 @@ inbox.onmessage = function(message) {
     
     $("#chat-text").append("<div class='bubble-span-panel'><div class='words my-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>"); 
 
-addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
-	start();
+
   }
   //if it's the content other people entered
   else{
@@ -175,7 +174,8 @@ addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
      $("#chat-text").append("<div class='bubble-span-panel'><div class='words his-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>");
 
   }
-
+addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
+	start();
   $("#chat-text").stop().animate({
     scrollTop: $('#chat-text')[0].scrollHeight
   }, 800);
