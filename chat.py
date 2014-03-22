@@ -12,6 +12,7 @@ import sys
 import json
 import logging
 import redis
+import urlparse
 import gevent
 from flask import Flask, render_template
 from flask_sockets import Sockets
@@ -64,15 +65,14 @@ sys.stdout.flush()
 #def myClassify(chat):
 #    return classifier1.classify(word_feats( chat.split() ))
 
-
-REDIS_URL = os.environ['REDISCLOUD_URL']
+REDIS_URL =  urlparse.urlparse(os.getenv('REDISCLOUD_URL','redis://localhost:6379'))
 REDIS_CHAN = 'chat'
 
 app = Flask(__name__)
 app.debug = 'DEBUG' in os.environ
 
 sockets = Sockets(app)
-redis = redis.from_url(REDIS_URL)
+redis = redis.Redis(host=REDIS_URL.hostname, port=REDIS_URL.port, password=REDIS_URL.password)
 """redis is used to save key-value pairs.."""
 
 
@@ -160,5 +160,3 @@ def outbox(ws):
 def getLengthOfMessage(message):    
     decoded = json.loads(message)
     return len( decoded['text'] )
-
-
