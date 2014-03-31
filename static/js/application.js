@@ -1,6 +1,7 @@
 //hostname which is emotion-chat-v1.herokuapp
 var inbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
 var outbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
+var parentHeight = 500;
 
 var margin = {
     top: 0,
@@ -9,7 +10,7 @@ var margin = {
     left: 0
 },
 width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+height = parentHeight/3 - margin.top - margin.bottom;
 
 
 var n = 6,
@@ -17,8 +18,8 @@ var n = 6,
     padding = 6,
     radius = d3.scale.sqrt().range([0, 4]),
     color = d3.scale.ordinal().domain(['rg-1','rg-2','rg-3','rg-4','rg-5','rg-6','rg-7','rg-8','rg-9','rg-10','rg-11']).range(['black','red','#919191','#660000','#f8651d','#6240a1','#f9659b','#fbfe32','#3302fb','#30cf31','white']),
-    x = d3.scale.ordinal().domain(d3.range(m)).rangePoints([0, width], 1);
-
+    x = d3.scale.linear().domain([0,width]).range([0,width]),
+    y = d3.scale.linear().domain([0,height]).range([0,height]);
 var nodes = [];
 /*
 var nodes = d3.range(n).map(function () {
@@ -35,6 +36,7 @@ return n;
 
 });
 */
+d3.select(window).on('resize', resized3); 
 var force = d3.layout.force()
     .nodes(nodes)
     .size([width, height])
@@ -109,25 +111,57 @@ circleNode
     .style("fill", function (d) { return d.color; })
     .call(force.drag);
 
+// circleNode.transition().duration(200)
+// .attr("cx", function(d) { return d.cx; })
+//     .attr("cy", function(d) { return d.cy; });
+
 circleNode.exit().remove();
 
   force.start();
 }
 
+function resized3(){
+
+ $("#bubbles").height($("#chat-text").height()).width($("#chat-text").width());
+ height = $("#chat-text").height()/3 - margin.top - margin.bottom;
+
+  // update width
+ width = parseInt(d3.select('#bubbles').style('width'), 10);
+ width = width - margin.left - margin.right;
+  x = d3.scale.linear().domain([0,width]).range([0,width]),
+    y = d3.scale.linear().domain([0,height]).range([0,height]);
+    var nodes = force.nodes();
+    for (var i in nodes){
+     nodes[i].cx = x(width/2);
+     nodes[i].cy = y(height/2);
+    }
+    force.nodes(nodes);
+
+    // resize the chart
+    // d3.select(svg.node().parentNode)
+    //     .style('height', (y.rangeExtent()[1] + margin.top + margin.bottom) + 'px')
+    //     .style('width', (width + margin.left + margin.right) + 'px');
+start();
+}
+window.onresize = function(event){
+  console.log(event);
+  console.log( $("#chat-text").height());
+ console.log( $("#chat-text").width());
+}
 //receiving a message
 //get data and show in chat box
 inbox.onmessage = function(message) {
-  console.log(message);
+  // console.log(message);
   var data = JSON.parse(message.data);
   var name = data.handle;
   var content = data.text;
   var textLength = parseInt(data.length);
-  console.log(textLength);
+  // console.log(textLength);
  
   var negP = parseFloat(data.neg);
-  console.log(data.neg);
+  // console.log(data.neg);
   var posP = parseFloat(data.pos);
-  console.log(posP);
+  // console.log(posP);
 
   var emotionRangeClassString = ""
     if ( negP > posP){
@@ -158,15 +192,13 @@ inbox.onmessage = function(message) {
       emotionRangeClassString = "rg-6";
     }
 
-  console.log(emotionRangeClassString);
+  // console.log(emotionRangeClassString);
 
   var bubblesNb = data.length;
   //if it's the content we entered
   if ( $("#input-name")[0].value == name ) {
     
     $("#chat-text").append("<div class='bubble-span-panel'><div class='words my-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>"); 
-
-
   }
   //if it's the content other people entered
   else{
@@ -174,7 +206,8 @@ inbox.onmessage = function(message) {
      $("#chat-text").append("<div class='bubble-span-panel'><div class='words his-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>");
 
   }
-addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
+
+  addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
 	start();
   $("#chat-text").stop().animate({
     scrollTop: $('#chat-text')[0].scrollHeight
@@ -182,14 +215,21 @@ addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
 
 };
 
-function addNodes(msg, bubblesNb, pos, neg,emotionRangeClassString){
+function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
+  var last = $( "#chat-text" );
+  last = last.children().last();
+  last = last.children().last();
+  var offset = last.position();
+  console.log(offset);
 	for (var i = 0 ;i<bubblesNb;i++){
 		nodes.push({
 		id : Math.floor(Math.random()*1000000000),
 		radius: radius(3),
 		color: color(emotionRangeClassString),
-		cx: x(4),
-		cy: height / 2,
+    // x: offset.left,
+    // y: offset.top,
+		cx: x(width/2),
+		cy: y(height/2),
 	    });
 	}
 }
@@ -223,6 +263,20 @@ $("#input-form").on("submit", function(event) {
   //console.log(stringifyText);
 });
 
+function textEntered(){
+ if ( $("#input-name").val() == ""){
+    alert("Type your name!!");
+    return
+  }
+
+  var handle = $("#input-name")[0].value;
+  var text   = $("#input-text")[0].value;
+
+  //we stringify it because it only support string.
+  outbox.send(JSON.stringify({ handle: handle, text: text }));
+  $("#input-text")[0].value = "";
+  //console.log(stringifyText);
+}
 //called when confirm button pressed,
 //change the input
 //change the button
@@ -238,3 +292,10 @@ function nameConfirm(){
     }
     
 }
+
+$( window ).load(function() {
+ console.log( $("#chat-text").height());
+ console.log( $("#chat-text").width());
+ // $("#bubbles").height($("#chat-text").height()).width($("#chat-text").width());
+ resized3();
+});

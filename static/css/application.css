@@ -60,12 +60,6 @@
   height: 34px;
 }
 
-#input-text{width: 80%; float: left;}
-#input-text-btn{
-  width: 100%;
-  background-color: #f1848d;
-  border-color: #a9a8a9;
-}
 .btn-wrapper{
   float: left;
   width: 20%;
