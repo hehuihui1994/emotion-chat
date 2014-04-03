@@ -36,18 +36,19 @@ return n;
 
 });
 */
+
 d3.select(window).on('resize', resized3); 
+
 var force = d3.layout.force()
     .nodes(nodes)
     .size([width, height])
     .gravity(0)
     .charge(0)
     .on("tick", tick);
-//force.start();
 
 var svg = d3.select("#bubbles").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("width", width - margin.left - margin.right)
+    .attr("height", height - margin.top - margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -121,13 +122,17 @@ circleNode.exit().remove();
 }
 
 function resized3(){
+  width = $("#bg").width();
+  height = $("#bg").height();
 
- $("#bubbles").height($("#chat-text").height()).width($("#chat-text").width());
- height = $("#chat-text").height()/3 - margin.top - margin.bottom;
+  $("#chat-text").height(height*2/3).width(width);
+  $("#bubbles").height(height/3).width(width);
+  $("#chat-text").css('top', height/3 +'px');
+  height = height/3 - margin.top - margin.bottom;
+  width = width - margin.left - margin.right;
+  
+  $("svg").width(width);
 
-  // update width
- width = parseInt(d3.select('#bubbles').style('width'), 10);
- width = width - margin.left - margin.right;
   x = d3.scale.linear().domain([0,width]).range([0,width]),
     y = d3.scale.linear().domain([0,height]).range([0,height]);
     var nodes = force.nodes();
@@ -141,12 +146,12 @@ function resized3(){
     // d3.select(svg.node().parentNode)
     //     .style('height', (y.rangeExtent()[1] + margin.top + margin.bottom) + 'px')
     //     .style('width', (width + margin.left + margin.right) + 'px');
-start();
+  start();
 }
 window.onresize = function(event){
   console.log(event);
   console.log( $("#chat-text").height());
- console.log( $("#chat-text").width());
+  console.log( $("#chat-text").width());
 }
 //receiving a message
 //get data and show in chat box
