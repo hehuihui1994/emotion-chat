@@ -117,7 +117,7 @@ function collide(alpha) {
                 var x = d.x - quad.point.x,
                     y = d.y - quad.point.y,
                     l = Math.sqrt(x * x + y * y),
-                    r = d.radius + quad.point.radius + (d.colorClass !== quad.point.colorClass) * padding;
+                    r = d.radius + quad.point.radius + (d.colorClass !== quad.point.c) * padding;
                 if (l < r) {
                     l = (l - r) / l * alpha;
                     d.x -= x *= l;
@@ -233,17 +233,13 @@ inbox.onmessage = function(message) {
 
   var bubblesNb = data.length;
   //if it's the content we entered
+  var cl = 'his-words';
   if ( $("#input-name")[0].value == name ) {
-    
-    $("#chat-text").append("<div class='bubble-span-panel'><div class='words my-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>"); 
+    cl = 'my-words';
   }
-  //if it's the content other people entered
-  else{
-
-     $("#chat-text").append("<div class='bubble-span-panel'><div class='words his-words "+emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + $('<span/>').text(data.text + "  --> # of bubbles = " + bubblesNb + ", value of neg = " + data.neg + ", value of pos = " + data.pos ).html() + "</div></div></div>");
-
-  }
-
+ $("#chat-text").append("<div class='bubble-span-panel'><div class='words "+cl+" "+
+      emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + 
+      $('<span/>').text(data.text).html() + "</div></div></div>");
   addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
 	start();
   $("#chat-text").stop().animate({
