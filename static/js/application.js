@@ -15,27 +15,39 @@ height = parentHeight/3 - margin.top - margin.bottom;
 
 var n = 6,
     m = 1,
-    padding = 6,
-    radius = d3.scale.sqrt().range([0, 4]),
+    padding = getPadding(width),
+    radius = getRadius(width),
     color = d3.scale.ordinal().domain(['rg-1','rg-2','rg-3','rg-4','rg-5','rg-6','rg-7','rg-8','rg-9','rg-10','rg-11']).range(['black','red','#919191','#660000','#f8651d','#6240a1','#f9659b','#fbfe32','#3302fb','#30cf31','white']),
     x = d3.scale.linear().domain([0,width]).range([0,width]),
-    y = d3.scale.linear().domain([0,height]).range([0,height]);
-var nodes = [];
-/*
-var nodes = d3.range(n).map(function () {
-    var i = Math.floor(Math.random() * m), //color
-        v = (i + 1) / m * -Math.log(Math.random()); //value
-    var n = {
-	id : Math.floor(Math.random()*1000000000),
-        radius: radius(v),
-        color: color(i),
-        cx: x(i),
-        cy: height / 2,
-    };
-return n;
+    y = d3.scale.linear().domain([0,height]).range([0,height]),
+    nodes = [],
+    colors = [],
+    lastExtRadius = 1;
 
-});
-*/
+for (var i in color.domain()){
+  colors[color.domain()[i]] = 0;
+}
+
+// x,y is the point to test
+// cx, cy is circle center, and radius is circle radius
+function pointInCircle(x, y, cx, cy, radius) {
+  var distancesquared = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+  return distancesquared <= radius * radius;
+}
+
+function getRadiusFromCenter(cx,cy, extColor){
+  for (var i in nodes){
+    if (nodes[i].colorClass !== extColor){
+      var x = nodes[i].x;
+      var y = nodes[i].y;
+      while (!pointInCircle(x,y,cx,cy,lastExtRadius)){
+        lastExtRadius++;
+      }
+    }
+  }
+  console.log('radius ' + lastExtRadius + " for color " + extColor);
+  return lastExtRadius;
+}
 
 d3.select(window).on('resize', resized3); 
 
@@ -53,7 +65,23 @@ var svg = d3.select("#bubbles").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 start();
+
+function getPadding(screenWidth){
+  if (screenWidth < 500) return 1;
+  if (screenWidth < 750) return 2;
+  if (screenWidth < 1000) return 3;
+  return 4;
+}
+
+function getRadius(screenWidth){
+  if (screenWidth < 500) return 3;
+  if (screenWidth < 750) return 4;
+  if (screenWidth < 1000) return 5;
+  return 6;
+}
+
 function tick(e) {
+  var colorMax = getColorMax();
     svg.selectAll("circle").each(gravity(.2 * e.alpha))
         .each(collide(.5))
         .attr("cx", function (d) {
@@ -66,6 +94,7 @@ function tick(e) {
 
 // Move nodes toward cluster focus.
 function gravity(alpha) {
+
     return function (d) {
         d.y += (d.cy - d.y) * alpha;
         d.x += (d.cx - d.x) * alpha;
@@ -75,8 +104,10 @@ function gravity(alpha) {
 // Resolve collisions between nodes.
 function collide(alpha) {
     var quadtree = d3.geom.quadtree(nodes);
+    var padding = getPadding($("#bubbles").width());
+    var maxColor = getColorMax();
     return function (d) {
-        var r = d.radius + radius.domain()[1] + padding,
+        var r = d.radius + 1 + padding,
             nx1 = d.x - r,
             nx2 = d.x + r,
             ny1 = d.y - r,
@@ -86,7 +117,7 @@ function collide(alpha) {
                 var x = d.x - quad.point.x,
                     y = d.y - quad.point.y,
                     l = Math.sqrt(x * x + y * y),
-                    r = d.radius + quad.point.radius + (d.color !== quad.point.color) * padding;
+                    r = d.radius + quad.point.radius + (d.colorClass !== maxColor) * padding;
                 if (l < r) {
                     l = (l - r) / l * alpha;
                     d.x -= x *= l;
@@ -99,6 +130,7 @@ function collide(alpha) {
         });
     };
 }
+
 function start() {
 
  var circleNode = svg.selectAll("circle")
@@ -109,12 +141,10 @@ circleNode
     .attr("r", function (d) { return d.radius;})
     .attr("cx", function (d) { return d.cx;})
     .attr("cy", function (d) { return d.cy;})
-    .style("fill", function (d) { return d.color; })
-    .call(force.drag);
+    .style("fill", function (d) { return d.color; });
 
-// circleNode.transition().duration(200)
-// .attr("cx", function(d) { return d.cx; })
-//     .attr("cy", function(d) { return d.cy; });
+circleNode.transition().duration(200)
+    .attr("r", function(d) { return d.radius; });
 
 circleNode.exit().remove();
 
@@ -122,6 +152,7 @@ circleNode.exit().remove();
 }
 
 function resized3(){
+ console.log("resize");
   width = $("#bg").width();
   height = $("#bg").height();
 
@@ -132,15 +163,18 @@ function resized3(){
   width = width - margin.left - margin.right;
   
   $("svg").width(width);
-
   x = d3.scale.linear().domain([0,width]).range([0,width]),
-    y = d3.scale.linear().domain([0,height]).range([0,height]);
-    var nodes = force.nodes();
-    for (var i in nodes){
+  y = d3.scale.linear().domain([0,height]).range([0,height]);
+
+ var rad = getRadius(width);
+ // console.log("radius will be " + rad);
+  var nodes = force.nodes();
+  for (var i in nodes){
      nodes[i].cx = x(width/2);
      nodes[i].cy = y(height/2);
-    }
-    force.nodes(nodes);
+     nodes[i].radius = rad;
+  }
+  force.nodes(nodes);
 
     // resize the chart
     // d3.select(svg.node().parentNode)
@@ -149,9 +183,7 @@ function resized3(){
   start();
 }
 window.onresize = function(event){
-  console.log(event);
-  console.log( $("#chat-text").height());
-  console.log( $("#chat-text").width());
+
 }
 //receiving a message
 //get data and show in chat box
@@ -225,18 +257,70 @@ function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
   last = last.children().last();
   last = last.children().last();
   var offset = last.position();
-  console.log(offset);
-	for (var i = 0 ;i<bubblesNb;i++){
+  // console.log(offset);
+  var width = $("#bubbles").width();
+  var rad = getRadius(width);
+  // console.log("radius: " + rad);
+  colors[emotionRangeClassString] += parseInt(bubblesNb);
+  var colorMax = getColorMax();
+  // console.log("color max is " + colorMax);
+  var r = getRadiusFromCenter(x(width/2),y(height/2), colorMax);
+  for (var i in nodes){
+    var node = nodes[i];
+    if (node.colorClass === colorMax){
+      var rand = Math.random();
+      var angle = rand*Math.PI*2;
+       node.cx = x(width/2) + Math.cos(angle)*r ;
+       node.cy = y(height/2) + Math.sin(angle)*r ;
+    }else{
+       node.cx = x(width/2);
+       node.cy = y(height/2);
+    }
+  }
+  // force.nodes(nodes);
+	for (var i = 0 ; i < bubblesNb; i++){
+    var rand = Math.random();
+    var angle = rand*Math.PI*2;
+    var xC ,yC;
+    if (colorMax === emotionRangeClassString){
+       xC = x(width/2) + Math.cos(angle)*r ;
+       yC = y(height/2) + Math.sin(angle)*r ;
+    }else{
+       xC = x(width/2);
+       yC = y(height/2);
+    }
+    
 		nodes.push({
-		id : Math.floor(Math.random()*1000000000),
-		radius: radius(3),
-		color: color(emotionRangeClassString),
-    // x: offset.left,
-    // y: offset.top,
-		cx: x(width/2),
-		cy: y(height/2),
-	    });
+  		id : Math.floor(rand*1000000000),
+  		radius: rad,
+      colorClass: emotionRangeClassString,
+  		color: color(emotionRangeClassString),
+      weight : Math.floor(Math.random()*100),
+  		cx: xC,
+  		cy: yC,
+	  });
 	}
+  printColors();
+
+}
+
+function printColors(){
+  for (var i in color.domain()){
+    console.log(color.domain()[i] + " - " + colors[color.domain()[i]]);
+  }
+}
+function getColorMax(){
+  var max ='';
+  for (var i in color.domain()){
+    if (max ===''){
+      max = color.domain()[i];
+    }else{
+      if (colors[color.domain()[i]] > colors[max]){
+        max = color.domain()[i];
+      }
+    }
+  }
+  return max;
 }
 
 inbox.onclose = function(){
@@ -299,8 +383,5 @@ function nameConfirm(){
 }
 
 $( window ).load(function() {
- console.log( $("#chat-text").height());
- console.log( $("#chat-text").width());
- // $("#bubbles").height($("#chat-text").height()).width($("#chat-text").width());
  resized3();
 });
