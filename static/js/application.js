@@ -82,7 +82,7 @@ function getRadius(screenWidth){
 
 function tick(e) {
   var colorMax = getColorMax();
-    svg.selectAll("circle").each(gravity(.2 * e.alpha))
+    svg.selectAll("circle").each(gravity(.1 * e.alpha))
         .each(collide(.5))
         .attr("cx", function (d) {
         return d.x;
