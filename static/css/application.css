@@ -81,12 +81,14 @@
   margin-top: 10px;
   height: 34px;
 }
+
 #input-text{width: 80%; float: left;}
 #input-text-btn{
   width: 100%;
   background-color: #f1848d;
   border-color: #a9a8a9;
 }
+
 .btn-wrapper {
   float: left;
   width: 20%;
@@ -94,14 +96,88 @@
   height: 34px;
 }
 
+.speechbubble 
+{
+position: relative;
+/*width: 250px;*/
+min-height: 40px;
+padding: 0px;
+background: #FFFFFF;
+-webkit-border-radius: 10px;
+-moz-border-radius: 10px;
+border-radius: 10px;
+border: #7F7F7F solid 3px;
+}
 
-.my-words {
+.speechbubble:after
+{
+content: '';
+position: absolute;
+border-style: solid;
+border-width: 10px 0 10px 20px;
+border-color: transparent #FFFFFF;
+display: block;
+width: 0;
+z-index: 1;
+margin-top: -10px;
+top: 50%;
+}
+
+.speechbubble:before 
+{
+content: '';
+position: absolute;
+border-style: solid;
+border-width: 12px 0 12px 22px;
+border-color: transparent #7F7F7F;
+display: block;
+width: 0;
+z-index: 0;
+margin-top: -12px;
+top: 50%;
+}
+.speechbubble.my-words 
+{
+float:right;
+background-color: black;
+margin-right: 20px;
+}
+.his-words.speechbubble
+{
+float:left;
+background-color: black;
+margin-left: 20px;
+}
+.my-words.speechbubble:after
+{
+right: -20px;
+}
+.my-words.speechbubble:before
+{
+right: -25px;
+}
+.his-words.speechbubble:after
+{
+left: -20px;
+}
+.his-words.speechbubble:before
+{
+left: -25px;
+}
+
+.bubble-span-panel {  
+margin-top: 15px;
+min-height: 45px;
+/*overflow: auto;*/
+border-color: black;
+}
+
+/*.my-words {
 background-color: black;
 float: right;
 margin-right: 25px;
 position: relative;
 width: 250px;
-/*height: 120px;*/
 min-height: 120px;  
 padding: 3px;
 border: solid 4px;
@@ -117,7 +193,6 @@ top: 48px;
 right: -15px;
 border-style: solid;
 border-width: 15px 0 15px 15px;
-/*border-color: transparent #F5F900;*/
 display: block;
 width: 0;
 z-index: 1;
@@ -130,7 +205,6 @@ top: 45px;
 left: 245px;
 border-style: solid;
 border-width: 18px 0 18px 18px;
-/*border-color: transparent #7E7F7F;*/
 display: block;
 width: 0;
 z-index: 0;
@@ -138,20 +212,10 @@ z-index: 0;
 
 
 
-.bubble-span-panel {  
-margin-top: 10px;
-/*background-color: black;*/
-/*height: 122px;*/
-min-height: 122px;
-overflow: auto;
-border-color: black;
-}
-
 .his-words {
 margin-left: 25px;
 position: relative;
 width: 250px;
-/*height: 120px;*/
 min-height: 120px;
 padding: 0px;
 background: #000000;
@@ -185,7 +249,7 @@ border-color: transparent #7F7F7F;
 display: block;
 width: 0;
 z-index: 0;
-}
+}*/
 
 
 /* start from most neg to more pos */
