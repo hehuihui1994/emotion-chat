@@ -156,7 +156,8 @@ function resized3(){
   width = $("#bg").width();
   height = $("#bg").height();
 
-  $("#chat-text").height(height*2/3).width(width);
+var containerWidth = $("#container").width();
+  $("#chat-text").height(height*2/3).width(containerWidth);
   $("#bubbles").height(height/3).width(width);
   $("#chat-text").css('top', height/3 +'px');
   height = height/3 - margin.top - margin.bottom;

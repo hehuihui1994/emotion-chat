@@ -41,7 +41,7 @@
 }
 #chat-text {
   position: absolute;
-  overflow: auto;
+  overflow-x: hidden;
 }
 /*#chat-text {
   overflow: auto;
@@ -108,33 +108,31 @@ background: #FFFFFF;
 border-radius: 10px;
 border: #7F7F7F solid 3px;
 }
-
-.speechbubble:after
+.speechbubble:after,
+.speechbubble:before
 {
 content: '';
 position: absolute;
 border-style: solid;
-border-width: 10px 0 10px 20px;
-border-color: transparent #FFFFFF;
+/*border-width: 10px 0 10px 20px;*/
+/*border-color: transparent #FFFFFF;*/
 display: block;
 width: 0;
-z-index: 1;
-margin-top: -10px;
+/*z-index: 1;*/
+/*margin-top: -10px;*/
 top: 50%;
 }
-
+.speechbubble:after
+{
+border-color: transparent #FFFFFF;
+z-index: 1;
+margin-top: -10px;
+}
 .speechbubble:before 
 {
-content: '';
-position: absolute;
-border-style: solid;
-border-width: 12px 0 12px 22px;
 border-color: transparent #7F7F7F;
-display: block;
-width: 0;
 z-index: 0;
 margin-top: -12px;
-top: 50%;
 }
 .speechbubble.my-words 
 {
@@ -150,18 +148,22 @@ margin-left: 20px;
 }
 .my-words.speechbubble:after
 {
+border-width: 10px 0 10px 20px;
 right: -20px;
 }
 .my-words.speechbubble:before
 {
+border-width: 12px 0 12px 22px;
 right: -25px;
 }
 .his-words.speechbubble:after
 {
+border-width: 10px 20px 10px 0;
 left: -20px;
 }
 .his-words.speechbubble:before
 {
+  border-width: 12px 22px 12px 0;
 left: -25px;
 }
 
