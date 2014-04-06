@@ -158,21 +158,21 @@ function resized3(){
 
 var containerWidth = $("#container").width();
   $("#chat-text").height(height*2/3).width(containerWidth);
-  $("#bubbles").height(height/3).width(width);
+  $("#bubbles").height(height).width(width);
   $("#chat-text").css('top', height/3 +'px');
-  height = height/3 - margin.top - margin.bottom;
+  height = height - margin.top - margin.bottom;
   width = width - margin.left - margin.right;
   
-  $("svg").width(width);
+  $("svg").width(width).height(height);
   x = d3.scale.linear().domain([0,width]).range([0,width]),
-  y = d3.scale.linear().domain([0,height]).range([0,height]);
+  y = d3.scale.linear().domain([0,height]).range([0,height/3]);
 
  var rad = getRadius(width);
  // console.log("radius will be " + rad);
   var nodes = force.nodes();
   for (var i in nodes){
      nodes[i].cx = x(width/2);
-     nodes[i].cy = y(height/2);
+     nodes[i].cy = y((height/3)/2);
      nodes[i].radius = rad;
   }
   force.nodes(nodes);
@@ -238,22 +238,36 @@ inbox.onmessage = function(message) {
   if ( $("#input-name")[0].value == name ) {
     cl = 'my-words';
   }
- $("#chat-text").append("<div class='bubble-span-panel'><div class='speechbubble "+cl+" "+ 
+  $("#chat-text").append("<div class='bubble-span-panel'><div class='speechbubble "+cl+" "+ 
       emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + 
       $('<span/>').text(data.text).html() + "</div></div></div>");
-  addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
-	start();
+  
   $("#chat-text").stop().animate({
     scrollTop: $('#chat-text')[0].scrollHeight
-  }, 800);
+    }, 800,function(){
+    addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
+    start();
+  });
 
 };
 
-function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
+function getLastMessage(){
   var last = $( "#chat-text" );
   last = last.children().last();
   last = last.children().last();
+  return last;
+}
+function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
+  var last = getLastMessage();
   var offset = last.position();
+  var offset2 = last.offset();
+ 
+  var rect = {
+    offsetLeft: last.position().left, 
+    offsetTop:(last.position().top + $("#bg").height()/3),  
+    width: last.width(), 
+    height: last.height()
+  };
   // console.log(offset);
   var width = $("#bubbles").width();
   var rad = getRadius(width);
@@ -265,8 +279,8 @@ function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
   for (var i in nodes){
     var node = nodes[i];
     if (node.colorClass === colorMax){
-      var rand = Math.random();
-      var angle = rand*Math.PI*2;
+       var rand = Math.random();
+       var angle = rand*Math.PI*2;
        node.cx = x(width/2) + Math.cos(angle)*r ;
        node.cy = y(height/2) + Math.sin(angle)*r ;
     }else{
@@ -279,6 +293,7 @@ function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
     var rand = Math.random();
     var angle = rand*Math.PI*2;
     var xC ,yC;
+    var startCoord = randomPointInRect(rect);
     if (colorMax === emotionRangeClassString){
        xC = x(width/2) + Math.cos(angle)*r ;
        yC = y(height/2) + Math.sin(angle)*r ;
@@ -295,6 +310,8 @@ function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
       weight : Math.floor(Math.random()*100),
   		cx: xC,
   		cy: yC,
+      x:startCoord.x,
+      y:startCoord.y,
       angle: angle,
 	  });
 	}
@@ -302,11 +319,26 @@ function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
 
 }
 
+function randomPointInRect(rect){
+  var x,y,
+    perc = Math.floor(Math.random()*100),
+    onLeftSide = Math.floor(Math.random()*2) ===1 ? true: false;
+  if (onLeftSide){
+     y = rect.offsetTop + perc*rect.height/100;
+     x = rect.offsetLeft;
+  } else {
+     y = rect.offsetTop;
+     x = rect.offsetLeft+ perc*rect.width/100;
+  }
+  return {x:x,y:y};
+}
+
 function printColors(){
   for (var i in color.domain()){
     console.log(color.domain()[i] + " - " + colors[color.domain()[i]]);
   }
 }
+
 function getColorMax(){
   var max ='';
   for (var i in color.domain()){
