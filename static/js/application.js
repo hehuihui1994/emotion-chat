@@ -237,7 +237,7 @@ inbox.onmessage = function(message) {
   if ( $("#input-name")[0].value == name ) {
     cl = 'my-words';
   }
- $("#chat-text").append("<div class='bubble-span-panel'><div class='words "+cl+" "+
+ $("#chat-text").append("<div class='bubble-span-panel'><div class='words "+cl+" "+ 
       emotionRangeClassString+"'" + "><div class='panel-body white-text'>" + 
       $('<span/>').text(data.text).html() + "</div></div></div>");
   addNodes(data.text, bubblesNb,data.pos,data.neg,emotionRangeClassString);
@@ -294,6 +294,7 @@ function addNodes(msg, bubblesNb, pos, neg, emotionRangeClassString){
       weight : Math.floor(Math.random()*100),
   		cx: xC,
   		cy: yC,
+      angle: angle,
 	  });
 	}
   printColors();
