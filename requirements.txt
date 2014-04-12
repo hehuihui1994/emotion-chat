@@ -3,10 +3,13 @@ Flask==0.10.1
 Flask-Sockets==0.1
 Jinja2==2.7.1
 Mako==0.7.3
-MarkupSafe==0.15
+MarkupSafe==0.18
 MySQL-python==1.2.3
 gunicorn==18.0
 py2app==0.7.3
 redis==2.8.0
-http://pyyaml.org/download/pyyaml/PyYAML-3.10.tar.gz
-http://pypi.python.org/packages/source/n/nltk/nltk-2.0.1rc1.tar.gz
+PyYAML==3.10
+nltk==2.0.4
+wsgiref==0.1.2
+gevent==0.13.8
+gevent-websocket==0.3.6

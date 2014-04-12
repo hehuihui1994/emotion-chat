@@ -1,6 +1,0 @@
-argparse==1.2.1
-wsgiref==0.1.2
-gunicorn>=17.5
-Cython==0.19.2
-Flask==0.10.1
-Flask-Sockets==0.1
